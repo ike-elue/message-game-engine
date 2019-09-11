@@ -1,0 +1,11 @@
+Note: The engines don't pick up the messages, the messages pick up the engines
+
+2) Create States
+4) Implement input engine
+- look at google drive
+------------------------------------------
+5) Implement basic rendering engine (squares and stuff)
+- look at google drive
+
+Engines have automatic message that constantly tells them to send info stuff out
+- realized this is not needed
