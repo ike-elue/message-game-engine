@@ -1,0 +1,19 @@
+Note: The engines don't pick up the messages, the messages pick up the engines
+- I kno it's silly that this is still here, but this was a breakthrough
+
+1) Make it easier to set up input in engines using messsages
+    - it's just really long mate
+2) Implement basic rendering engine (squares and stuff)
+- look at google drive
+3) Do gui (should be easy, but prolly won't be)
+4) Do rest of engines as you feel like it
+
+Engines to add:
+- hud?
+- component?
+- object?
+- physics
+- camera
+- assets?
+- audio?
+    - look at jengine 2 and javax
