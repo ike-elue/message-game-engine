@@ -6,12 +6,13 @@
 package com.game.core;
 
 import com.game.engine.EngineManager;
+import org.lwjgl.opengl.GL;
 
 /**
  *
  * @author 17737
  */
-public class MessageExecutor implements Runnable{
+public class MessageExecutor implements Runnable {
 
     private volatile Message currentMessage;
     private double delta;
@@ -25,36 +26,37 @@ public class MessageExecutor implements Runnable{
         this.em = em;
         this.id = id;
     }
-    
+
     public void setMessage(Message message) {
         this.currentMessage = message;
     }
-    
+
     public Message getMessage() {
         return currentMessage;
     }
-    
+
     public void setDelta(double delta) {
         this.delta = delta;
     }
-    
+
     @Override
     public void run() {
         currentMessage = mb.receiveMessage();
-        if(currentMessage != null) {
+        if (currentMessage != null) {
             //System.out.println(String.format("Running %s on %s", currentMessage.getMessageTag(), id));
             //System.out.println(currentMessage);
             em.getEngines().forEach((e) -> {
                 e.updateWithCurrentMessage(currentMessage, delta);
             });
-            if(!currentMessage.shouldDeactivate()) {
+            if (!currentMessage.shouldDeactivate()) {
                 currentMessage.onRepeat();
                 mb.addMessage(currentMessage);
             }
         }
-        if(!mb.isEmpty())
+        if (!mb.isEmpty()) {
             run();
+        }
         currentMessage = null;
     }
-    
+
 }

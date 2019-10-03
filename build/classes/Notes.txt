@@ -1,13 +1,14 @@
 Note: The engines don't pick up the messages, the messages pick up the engines
+- I kno it's silly that this is still here, but this was a breakthrough
 
-1) Implement basic rendering engine (squares and stuff)
-- look at google drive
-2) Make it easier to set up input in engines using messsages
+1) Make it easier to set up input in engines using messsages
     - it's just really long mate
+2) Implement basic rendering engine (squares and stuff)
+- look at google drive
+3) Do gui (should be easy, but prolly won't be)
+4) Do rest of engines as you feel like it
 
 Engines to add:
-- render
-- state?
 - hud?
 - component?
 - object?
@@ -16,11 +17,3 @@ Engines to add:
 - assets?
 - audio?
     - look at jengine 2 and javax
-- gui
-
-Engines have automatic message that constantly tells them to send info stuff out
-- realized this is not needed
-    - this is needed for console until I think of something better
-
-REALLY IMPORTANT: 
-When making private datapackets in message, they gots to be static

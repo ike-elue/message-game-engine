@@ -8,7 +8,9 @@ package com.game.core;
 import com.game.debug.Console;
 import com.game.engine.EngineManager;
 import com.game.input.InputEngine;
+import com.game.render.RenderEngine;
 import com.game.scene.SceneEngine;
+import com.game.utils.Loader;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
@@ -45,7 +47,7 @@ public class Core implements Runnable {
     private final ThreadPool threadPool;
     private final EngineManager em;
     private final MessageBus mb;
-    
+
     /**
      * Constructor
      *
@@ -76,6 +78,7 @@ public class Core implements Runnable {
         em.addEngine(new Console(this, isDebug, em));
         em.addEngine(new InputEngine(this, em));
         em.addEngine(new SceneEngine(this, em));
+        em.addEngine(new RenderEngine(this, em));
         em.init();
     }
 
@@ -90,7 +93,7 @@ public class Core implements Runnable {
         }
     }
 
-        private void init() {
+    private void init() {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
@@ -101,9 +104,8 @@ public class Core implements Runnable {
         }
 
         // Configure GLFW
-        glfwDefaultWindowHints(); // optional, the current window hints are already the default
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
+        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE); // the window will stay hidden after creation
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // the window will not be resizable
 
         // Create the window
         window = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -138,19 +140,16 @@ public class Core implements Runnable {
         // Make the window visible
         glfwShowWindow(window);
     }
-    
+
     @Override
     public void run() {
         System.out.println("This program is using LWJGL " + Version.getVersion() + ", and it's working?");
 
         fpsString = "";
 
-        // Initializing
+        // First Initialization
         init();
-        initEngines();
-        game.init();
-        game.initEngines();
-
+        
         // This line is critical for LWJGL's interoperation with GLFW's
         // OpenGL context, or any context that is managed externally.
         // LWJGL detects the context that is current in the current thread,
@@ -158,37 +157,59 @@ public class Core implements Runnable {
         // bindings available for use.
         GL.createCapabilities();
 
-        // Set the clear color
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        glOrtho(0, width, 0, height, -1, 1);
+
+        glMatrixMode(GL_MODELVIEW);
+
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glEnable(GL_DEPTH_TEST);
+
+        
+        // Rest of Initialization
+        initEngines();
+        game.init();
+        game.initEngines();
 
         long initialTime = System.nanoTime();
         final double timeU = 1000000000 / frameRate;
-        double delta = 0;
-        int ticks = 0;
+        final double timeF = 1000000000 / frameRate;
+        double deltaU = 0, deltaF = 0;
+        int frames = 0, ticks = 0;
         long timer = System.currentTimeMillis();
 
         while (running && !glfwWindowShouldClose(window)) {
 
             long currentTime = System.nanoTime();
-            delta += (currentTime - initialTime) / timeU;
+            deltaU += (currentTime - initialTime) / timeU;
+            deltaF += (currentTime - initialTime) / timeF;
             initialTime = currentTime;
 
-            if (delta >= 1) {
+            if (deltaU >= 1) {
                 // Poll for window events. The key callback above will only be
                 // invoked during this call.
                 glfwPollEvents();
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-                update(delta);
-                glfwSwapBuffers(window); // swap the color buffers
+                update(deltaU);
                 ticks++;
-                delta--;
+                deltaU--;
+            }
+
+            if (deltaF >= 1) {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+                render();
+                glfwSwapBuffers(window); // swap the color buffers
+                frames++;
+                deltaF--;
             }
 
             if (System.currentTimeMillis() - timer > 1000) {
-                fpsString = String.format("FPS: %s", ticks);
+                fpsString = String.format("UPS: %s FPS: %s", ticks, frames);
                 if (isDebug) {
                     System.out.println(fpsString);
                 }
+                frames = 0;
                 ticks = 0;
                 timer += 1000;
             }
@@ -210,12 +231,17 @@ public class Core implements Runnable {
         threadPool.update(delta);
         threadPool.postUpdate();
     }
+    
+    private void render() {
+        em.render();
+    }
 
     /**
      * Dispose any required resources
      */
     public void dispose() {
         em.disposeEngines();
+        Loader.cleanUp();
         threadPool.dispose();
         
         // Free the window callbacks and destroy the window
@@ -241,15 +267,15 @@ public class Core implements Runnable {
     public final EngineManager getEngineManager() {
         return em;
     }
-    
+
     public final MessageBus getMessageBus() {
         return mb;
     }
-    
+
     public final String listMessages() {
         return mb.toString();
     }
-    
+
     public final long getWindow() {
         return window;
     }

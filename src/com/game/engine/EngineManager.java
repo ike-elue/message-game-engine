@@ -15,12 +15,14 @@ import java.util.List;
 public class EngineManager {
 
     private final List<Engine> engines;
+    private final List<RenderingEngine> renderEngines;
     
     private int engineCounter;
 
     public EngineManager() {
         engineCounter = 0;
         engines = new ArrayList<>();
+        renderEngines = new ArrayList<>();
     }
 
     public final void init() {
@@ -29,6 +31,12 @@ public class EngineManager {
         });
     }
 
+    public final void render() {
+        renderEngines.stream().forEach((e) -> {
+            e.renderAll();
+        });
+    }
+    
     public final void postUpdate() {
         engines.stream().forEach((e) -> {
             e.postUpdate();
@@ -39,6 +47,9 @@ public class EngineManager {
         engine.setId(engineCounter);
         engineCounter++;
         engines.add(engine);
+        if(engine instanceof RenderingEngine) {
+            renderEngines.add((RenderingEngine)engine);
+        }
     }
 
     public final Engine getEngine(int id) {
